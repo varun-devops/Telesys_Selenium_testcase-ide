@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Selenium Test Recorder - Options</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 40px;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+    
+    h1 {
+      color: #667eea;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    
+    .option-group {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f9fafb;
+      border-radius: 8px;
+    }
+    
+    .option-group h2 {
+      font-size: 18px;
+      color: #374151;
+      margin-bottom: 15px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 10px;
+      color: #4b5563;
+    }
+    
+    input[type="text"],
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 5px;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+    
+    input[type="checkbox"] {
+      margin-right: 10px;
+    }
+    
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+    
+    button {
+      background: #667eea;
+      color: white;
+      padding: 12px 30px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    button:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .save-status {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 5px;
+      text-align: center;
+      display: none;
+    }
+    
+    .save-status.success {
+      background: #d1fae5;
+      color: #065f46;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎬 Test Recorder - Options</h1>
+    
+    <div class="option-group">
+      <h2>Recording Settings</h2>
+      
+      <label>
+        Base URL:
+        <input type="text" id="baseUrl" placeholder="https://example.com">
+      </label>
+      
+      <label style="margin-top: 15px;">
+        <div class="checkbox-label">
+          <input type="checkbox" id="recordHover">
+          Record mouse hover events
+        </div>
+      </label>
+      
+      <label>
+        <div class="checkbox-label">
+          <input type="checkbox" id="recordKeyPress">
+          Record individual key presses
+        </div>
+      </label>
+      
+      <label>
+        <div class="checkbox-label">
+          <input type="checkbox" id="recordContextMenu">
+          Record right-click events
+        </div>
+      </label>
+    </div>
+    
+    <div class="option-group">
+      <h2>Selector Preferences</h2>
+      
+      <label>
+        Preferred selector type:
+        <select id="selectorType">
+          <option value="auto">Auto (ID > Name > CSS > XPath)</option>
+          <option value="id">ID</option>
+          <option value="css">CSS Selector</option>
+          <option value="xpath">XPath</option>
+          <option value="name">Name attribute</option>
+        </select>
+      </label>
+    </div>
+    
+    <div class="option-group">
+      <h2>Export Settings</h2>
+      
+      <label>
+        Default export format:
+        <select id="exportFormat">
+          <option value="selenium">Selenium (Python)</option>
+          <option value="webdriver">WebDriver (Java)</option>
+          <option value="json">JSON</option>
+        </select>
+      </label>
+      
+      <label style="margin-top: 15px;">
+        <div class="checkbox-label">
+          <input type="checkbox" id="includeWaits">
+          Include explicit waits in exported code
+        </div>
+      </label>
+    </div>
+    
+    <button id="saveBtn">Save Settings</button>
+    
+    <div id="saveStatus" class="save-status"></div>
+  </div>
+  
+  <script src="options.js"></script>
+</body>
+</html>

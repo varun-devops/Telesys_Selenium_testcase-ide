@@ -1,0 +1,44 @@
+# .gitignore for Telesys Selenium Test Case IDE
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.cache
+
+# Package files
+*.crx
+*.pem
+
+# Environment variables
+.env
+
+# Windows
+[Dd]esktop.ini
+$RECYCLE.BIN/

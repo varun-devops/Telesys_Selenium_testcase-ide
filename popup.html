@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Selenium Test Recorder</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎬 Test Recorder</h1>
+    </header>
+    
+    <div class="controls">
+      <button id="recordBtn" class="btn btn-primary">
+        <span class="icon">●</span> Start Recording
+      </button>
+      <button id="stopBtn" class="btn btn-secondary" disabled>
+        <span class="icon">■</span> Stop Recording
+      </button>
+      <button id="clearBtn" class="btn btn-warning">
+        <span class="icon">🗑</span> Clear
+      </button>
+    </div>
+    
+    <div class="status">
+      <span id="statusText">Ready to record</span>
+      <span id="stepCount" class="badge">0 steps</span>
+    </div>
+    
+    <div class="test-info">
+      <input type="text" id="testName" placeholder="Test Case Name (e.g., Login Test)" class="input-field">
+      <input type="text" id="testDescription" placeholder="Test Description (Optional)" class="input-field">
+    </div>
+    
+    <div class="test-steps">
+      <h3>Test Steps:</h3>
+      <div id="stepsList" class="steps-list">
+        <p class="empty-message">No steps recorded yet. Click "Start Recording" to begin.</p>
+      </div>
+    </div>
+    
+    <div class="export-controls">
+      <h4>Export Test Case:</h4>
+      <button id="exportExcel" class="btn btn-export excel-btn">
+        📊 Export to Excel (.xlsx)
+      </button>
+      <button id="exportCSV" class="btn btn-export csv-btn">
+        📋 Export to CSV
+      </button>
+      <button id="exportSelenium" class="btn btn-export">Export as Selenium (Python)</button>
+      <button id="exportWebDriver" class="btn btn-export">Export as WebDriver (Java)</button>
+      <button id="exportJSON" class="btn btn-export">Export as JSON</button>
+    </div>
+  </div>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
