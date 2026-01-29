@@ -424,69 +424,85 @@ function generateSeleniumPython() {
   
   testSteps.forEach((step, index) => {
     lines.push(`        # Step ${index + 1}: ${step.description || step.command}`);
-    lines.push(`        print("Executing Step ${index + 1}: ${step.description || step.command}")`);
     
     const locatorType = getSeleniumLocator(step.target);
     
     switch (step.command) {
       case 'navigate':
+        lines.push(`        print("Executing Step ${index + 1}: Navigating to ${step.target}")`);
         lines.push(`        driver.get("${step.target}")`);
         break;
       case 'click':
       case 'clickLink':
+        lines.push(`        print("Executing Step ${index + 1}: Clicking on element")`);
         lines.push(`        element = wait.until(EC.element_to_be_clickable((${locatorType})))`);
         lines.push(`        element.click()`);
         break;
       case 'type':
+        lines.push(`        print("Executing Step ${index + 1}: Typing '${step.value}' into input field")`);
         lines.push(`        element = wait.until(EC.presence_of_element_located((${locatorType})))`);
         lines.push(`        element.clear()`);
         lines.push(`        element.send_keys("${step.value}")`);
+        lines.push(`        print("  → Entered value: " + element.get_attribute('value'))`);
         
         // Add validation checks if metadata exists
         if (step.inputType === 'email') {
           lines.push(`        # Verify email format`);
           lines.push(`        assert '@' in element.get_attribute('value'), "Invalid email format"`);
+          lines.push(`        print("  ✓ Email format validated")`);
         } else if (step.inputType === 'number') {
           lines.push(`        # Verify numeric input`);
           lines.push(`        assert element.get_attribute('value').replace('.', '').replace('-', '').isdigit(), "Invalid number format"`);
+          lines.push(`        print("  ✓ Number format validated")`);
         } else if (step.required) {
           lines.push(`        # Verify required field is filled`);
           lines.push(`        assert element.get_attribute('value') != '', "Required field cannot be empty"`);
+          lines.push(`        print("  ✓ Required field validated")`);
         }
         
         // Add max length validation
         if (step.maxLength && step.maxLength > 0) {
           lines.push(`        # Verify max length (${step.maxLength})`);
           lines.push(`        assert len(element.get_attribute('value')) <= ${step.maxLength}, "Input exceeds max length"`);
+          lines.push(`        print("  ✓ Max length validated")`);
         }
         break;
       case 'select':
+        lines.push(`        print("Executing Step ${index + 1}: Selecting '${step.value}' from dropdown")`);
         lines.push(`        element = driver.find_element(${locatorType})`);
         lines.push(`        Select(element).select_by_visible_text("${step.value}")`);
         lines.push(`        # Verify selection`);
         lines.push(`        assert Select(element).first_selected_option.text == "${step.value}", "Selection failed"`);
+        lines.push(`        print("  → Selected value: " + Select(element).first_selected_option.text)`);
         break;
       case 'check':
+        lines.push(`        print("Executing Step ${index + 1}: Checking checkbox")`);
         lines.push(`        element = driver.find_element(${locatorType})`);
         lines.push(`        if not element.is_selected():`);
         lines.push(`            element.click()`);
         lines.push(`        assert element.is_selected(), "Checkbox not checked"`);
+        lines.push(`        print("  ✓ Checkbox is now checked")`);
         break;
       case 'uncheck':
+        lines.push(`        print("Executing Step ${index + 1}: Unchecking checkbox")`);
         lines.push(`        element = driver.find_element(${locatorType})`);
         lines.push(`        if element.is_selected():`);
         lines.push(`            element.click()`);
         lines.push(`        assert not element.is_selected(), "Checkbox still checked"`);
+        lines.push(`        print("  ✓ Checkbox is now unchecked")`);
         break;
       case 'submit':
+        lines.push(`        print("Executing Step ${index + 1}: Submitting form")`);
         lines.push(`        driver.find_element(${locatorType}).submit()`);
         break;
       case 'doubleClick':
+        lines.push(`        print("Executing Step ${index + 1}: Double clicking element")`);
         lines.push(`        from selenium.webdriver.common.action_chains import ActionChains`);
         lines.push(`        element = driver.find_element(${locatorType})`);
         lines.push(`        ActionChains(driver).double_click(element).perform()`);
         break;
       default:
+        lines.push(`        print("Executing Step ${index + 1}: ${step.command}")`);
         lines.push(`        # TODO: Implement ${step.command}`);
     }
     lines.push(`        print("✓ Step ${index + 1} completed successfully")`);
@@ -556,72 +572,88 @@ function generateWebDriverJava() {
   
   testSteps.forEach((step, index) => {
     lines.push(`            // Step ${index + 1}: ${step.description || step.command}`);
-    lines.push(`            System.out.println("Executing Step ${index + 1}: ${step.description || step.command}");`);
     
     const locator = getJavaLocator(step.target);
     
     switch (step.command) {
       case 'navigate':
+        lines.push(`            System.out.println("Executing Step ${index + 1}: Navigating to ${step.target}");`);
         lines.push(`            driver.get("${step.target}");`);
         break;
       case 'click':
       case 'clickLink':
+        lines.push(`            System.out.println("Executing Step ${index + 1}: Clicking on element");`);
         lines.push(`            WebElement element${index} = wait.until(ExpectedConditions.elementToBeClickable(${locator}));`);
         lines.push(`            element${index}.click();`);
         break;
       case 'type':
+        lines.push(`            System.out.println("Executing Step ${index + 1}: Typing '${step.value}' into input field");`);
         lines.push(`            WebElement element${index} = wait.until(ExpectedConditions.presenceOfElementLocated(${locator}));`);
         lines.push(`            element${index}.clear();`);
         lines.push(`            element${index}.sendKeys("${step.value}");`);
+        lines.push(`            System.out.println("  → Entered value: " + element${index}.getAttribute("value"));`);
         
         // Add validation checks if metadata exists
         if (step.inputType === 'email') {
           lines.push(`            // Verify email format`);
           lines.push(`            assert element${index}.getAttribute("value").contains("@") : "Invalid email format";`);
+          lines.push(`            System.out.println("  ✓ Email format validated");`);
         } else if (step.inputType === 'number') {
           lines.push(`            // Verify numeric input`);
           lines.push(`            String value${index} = element${index}.getAttribute("value");`);
           lines.push(`            assert value${index}.matches("[-]?\\\\d+(\\\\.\\\\d+)?") : "Invalid number format";`);
+          lines.push(`            System.out.println("  ✓ Number format validated");`);
         } else if (step.required) {
           lines.push(`            // Verify required field is filled`);
           lines.push(`            assert !element${index}.getAttribute("value").isEmpty() : "Required field cannot be empty";`);
+          lines.push(`            System.out.println("  ✓ Required field validated");`);
         }
         
         // Add max length validation
         if (step.maxLength && step.maxLength > 0) {
           lines.push(`            // Verify max length (${step.maxLength})`);
           lines.push(`            assert element${index}.getAttribute("value").length() <= ${step.maxLength} : "Input exceeds max length";`);
+          lines.push(`            System.out.println("  ✓ Max length validated");`);
         }
         break;
       case 'select':
+        lines.push(`            System.out.println("Executing Step ${index + 1}: Selecting '${step.value}' from dropdown");`);
         lines.push(`            Select dropdown${index} = new Select(driver.findElement(${locator}));`);
         lines.push(`            dropdown${index}.selectByVisibleText("${step.value}");`);
         lines.push(`            // Verify selection`);
         lines.push(`            assert dropdown${index}.getFirstSelectedOption().getText().equals("${step.value}") : "Selection failed";`);
+        lines.push(`            System.out.println("  → Selected value: " + dropdown${index}.getFirstSelectedOption().getText());`);
         break;
       case 'check':
+        lines.push(`            System.out.println("Executing Step ${index + 1}: Checking checkbox");`);
         lines.push(`            WebElement element${index} = driver.findElement(${locator});`);
         lines.push(`            if (!element${index}.isSelected()) {`);
         lines.push(`                element${index}.click();`);
         lines.push(`            }`);
         lines.push(`            assert element${index}.isSelected() : "Checkbox not checked";`);
+        lines.push(`            System.out.println("  ✓ Checkbox is now checked");`);
         break;
       case 'uncheck':
+        lines.push(`            System.out.println("Executing Step ${index + 1}: Unchecking checkbox");`);
         lines.push(`            WebElement element${index} = driver.findElement(${locator});`);
         lines.push(`            if (element${index}.isSelected()) {`);
         lines.push(`                element${index}.click();`);
         lines.push(`            }`);
         lines.push(`            assert !element${index}.isSelected() : "Checkbox still checked";`);
+        lines.push(`            System.out.println("  ✓ Checkbox is now unchecked");`);
         break;
       case 'submit':
+        lines.push(`            System.out.println("Executing Step ${index + 1}: Submitting form");`);
         lines.push(`            driver.findElement(${locator}).submit();`);
         break;
       case 'doubleClick':
+        lines.push(`            System.out.println("Executing Step ${index + 1}: Double clicking element");`);
         lines.push(`            Actions actions${index} = new Actions(driver);`);
         lines.push(`            WebElement element${index} = driver.findElement(${locator});`);
         lines.push(`            actions${index}.doubleClick(element${index}).perform();`);
         break;
       default:
+        lines.push(`            System.out.println("Executing Step ${index + 1}: ${step.command}");`);
         lines.push(`            // TODO: Implement ${step.command}`);
     }
     lines.push(`            System.out.println("✓ Step ${index + 1} completed successfully");`);
