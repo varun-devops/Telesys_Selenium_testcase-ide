@@ -88,20 +88,58 @@ function handleChange(event) {
   
   let command = 'type';
   let value = element.value;
+  let description = '';
   
   if (tagName === 'select') {
     command = 'select';
     value = element.options[element.selectedIndex].text;
-  } else if (element.type === 'checkbox' || element.type === 'radio') {
+    description = `Select "${value}" from ${getElementDescription(element)}`;
+  } else if (element.type === 'checkbox') {
     command = element.checked ? 'check' : 'uncheck';
     value = element.value;
+    description = `${element.checked ? 'Check' : 'Uncheck'} ${getElementDescription(element)}`;
+  } else if (element.type === 'radio') {
+    command = 'click';
+    value = element.value;
+    description = `Select radio button "${value}" in ${getElementDescription(element)}`;
+  } else {
+    // Enhanced text input handling
+    const inputType = element.type || 'text';
+    const placeholder = element.placeholder || '';
+    const label = getInputLabel(element);
+    
+    description = `Type "${value}" in ${label || getElementDescription(element)}`;
+    
+    // Add input type metadata for validation
+    if (inputType === 'email') {
+      description += ' (Email field)';
+    } else if (inputType === 'password') {
+      description += ' (Password field)';
+      // Mask password in display
+      value = element.value; // Keep actual value for test
+    } else if (inputType === 'number') {
+      description += ' (Number field)';
+    } else if (inputType === 'tel') {
+      description += ' (Phone field)';
+    } else if (inputType === 'url') {
+      description += ' (URL field)';
+    } else if (inputType === 'date') {
+      description += ' (Date field)';
+    } else if (inputType === 'search') {
+      description += ' (Search field)';
+    }
   }
   
   recordEvent({
     command: command,
     target: selector,
     value: value,
-    description: `${command} on ${getElementDescription(element)}`
+    description: description,
+    inputType: element.type || 'text',
+    placeholder: element.placeholder || '',
+    required: element.required || false,
+    maxLength: element.maxLength > 0 ? element.maxLength : null,
+    pattern: element.pattern || null
   });
 }
 
@@ -226,6 +264,42 @@ function getElementDescription(element) {
   if (id) return `${tag}${id}`;
   if (text) return `${tag} "${text}"`;
   return tag;
+}
+
+function getInputLabel(element) {
+  // Try to find associated label
+  if (element.id) {
+    const label = document.querySelector(`label[for="${element.id}"]`);
+    if (label) {
+      return label.textContent.trim();
+    }
+  }
+  
+  // Check if element is inside a label
+  let parent = element.parentElement;
+  while (parent) {
+    if (parent.tagName.toLowerCase() === 'label') {
+      return parent.textContent.trim();
+    }
+    parent = parent.parentElement;
+  }
+  
+  // Try placeholder
+  if (element.placeholder) {
+    return element.placeholder;
+  }
+  
+  // Try aria-label
+  if (element.getAttribute('aria-label')) {
+    return element.getAttribute('aria-label');
+  }
+  
+  // Try name attribute
+  if (element.name) {
+    return element.name.replace(/[_-]/g, ' ');
+  }
+  
+  return null;
 }
 
 function recordEvent(step) {

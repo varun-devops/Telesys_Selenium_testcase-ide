@@ -245,11 +245,21 @@ function exportToExcel() {
   
   // Detailed Test Data Sheet
   const detailedData = [
-    ['Step No.', 'Timestamp', 'Command', 'Locator Strategy', 'Element Identifier', 'Input Value', 'Description']
+    ['Step No.', 'Timestamp', 'Command', 'Locator Strategy', 'Element Identifier', 'Input Value', 'Input Type', 'Validation', 'Description']
   ];
   
   testSteps.forEach((step, index) => {
     const locatorStrategy = getLocatorStrategy(step.target);
+    let validation = '';
+    
+    // Build validation info
+    if (step.inputType) {
+      validation = `Type: ${step.inputType}`;
+      if (step.required) validation += ', Required';
+      if (step.maxLength) validation += `, Max: ${step.maxLength}`;
+      if (step.pattern) validation += `, Pattern: ${step.pattern}`;
+    }
+    
     detailedData.push([
       index + 1,
       step.timestamp || new Date().toISOString(),
@@ -257,13 +267,15 @@ function exportToExcel() {
       locatorStrategy,
       step.target || '',
       step.value || '',
+      step.inputType || 'N/A',
+      validation || 'N/A',
       step.description || ''
     ]);
   });
   
   const detailedSheet = XLSX.utils.aoa_to_sheet(detailedData);
   detailedSheet['!cols'] = [
-    { wch: 10 }, { wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 40 }, { wch: 30 }, { wch: 35 }
+    { wch: 10 }, { wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 40 }, { wch: 30 }, { wch: 12 }, { wch: 30 }, { wch: 35 }
   ];
   XLSX.utils.book_append_sheet(wb, detailedSheet, 'Detailed Steps');
   
@@ -429,10 +441,42 @@ function generateSeleniumPython() {
         lines.push(`        element = wait.until(EC.presence_of_element_located((${locatorType})))`);
         lines.push(`        element.clear()`);
         lines.push(`        element.send_keys("${step.value}")`);
+        
+        // Add validation checks if metadata exists
+        if (step.inputType === 'email') {
+          lines.push(`        # Verify email format`);
+          lines.push(`        assert '@' in element.get_attribute('value'), "Invalid email format"`);
+        } else if (step.inputType === 'number') {
+          lines.push(`        # Verify numeric input`);
+          lines.push(`        assert element.get_attribute('value').replace('.', '').replace('-', '').isdigit(), "Invalid number format"`);
+        } else if (step.required) {
+          lines.push(`        # Verify required field is filled`);
+          lines.push(`        assert element.get_attribute('value') != '', "Required field cannot be empty"`);
+        }
+        
+        // Add max length validation
+        if (step.maxLength && step.maxLength > 0) {
+          lines.push(`        # Verify max length (${step.maxLength})`);
+          lines.push(`        assert len(element.get_attribute('value')) <= ${step.maxLength}, "Input exceeds max length"`);
+        }
         break;
       case 'select':
         lines.push(`        element = driver.find_element(${locatorType})`);
         lines.push(`        Select(element).select_by_visible_text("${step.value}")`);
+        lines.push(`        # Verify selection`);
+        lines.push(`        assert Select(element).first_selected_option.text == "${step.value}", "Selection failed"`);
+        break;
+      case 'check':
+        lines.push(`        element = driver.find_element(${locatorType})`);
+        lines.push(`        if not element.is_selected():`);
+        lines.push(`            element.click()`);
+        lines.push(`        assert element.is_selected(), "Checkbox not checked"`);
+        break;
+      case 'uncheck':
+        lines.push(`        element = driver.find_element(${locatorType})`);
+        lines.push(`        if element.is_selected():`);
+        lines.push(`            element.click()`);
+        lines.push(`        assert not element.is_selected(), "Checkbox still checked"`);
         break;
       case 'submit':
         lines.push(`        driver.find_element(${locatorType}).submit()`);
@@ -529,10 +573,45 @@ function generateWebDriverJava() {
         lines.push(`            WebElement element${index} = wait.until(ExpectedConditions.presenceOfElementLocated(${locator}));`);
         lines.push(`            element${index}.clear();`);
         lines.push(`            element${index}.sendKeys("${step.value}");`);
+        
+        // Add validation checks if metadata exists
+        if (step.inputType === 'email') {
+          lines.push(`            // Verify email format`);
+          lines.push(`            assert element${index}.getAttribute("value").contains("@") : "Invalid email format";`);
+        } else if (step.inputType === 'number') {
+          lines.push(`            // Verify numeric input`);
+          lines.push(`            String value${index} = element${index}.getAttribute("value");`);
+          lines.push(`            assert value${index}.matches("[-]?\\\\d+(\\\\.\\\\d+)?") : "Invalid number format";`);
+        } else if (step.required) {
+          lines.push(`            // Verify required field is filled`);
+          lines.push(`            assert !element${index}.getAttribute("value").isEmpty() : "Required field cannot be empty";`);
+        }
+        
+        // Add max length validation
+        if (step.maxLength && step.maxLength > 0) {
+          lines.push(`            // Verify max length (${step.maxLength})`);
+          lines.push(`            assert element${index}.getAttribute("value").length() <= ${step.maxLength} : "Input exceeds max length";`);
+        }
         break;
       case 'select':
         lines.push(`            Select dropdown${index} = new Select(driver.findElement(${locator}));`);
         lines.push(`            dropdown${index}.selectByVisibleText("${step.value}");`);
+        lines.push(`            // Verify selection`);
+        lines.push(`            assert dropdown${index}.getFirstSelectedOption().getText().equals("${step.value}") : "Selection failed";`);
+        break;
+      case 'check':
+        lines.push(`            WebElement element${index} = driver.findElement(${locator});`);
+        lines.push(`            if (!element${index}.isSelected()) {`);
+        lines.push(`                element${index}.click();`);
+        lines.push(`            }`);
+        lines.push(`            assert element${index}.isSelected() : "Checkbox not checked";`);
+        break;
+      case 'uncheck':
+        lines.push(`            WebElement element${index} = driver.findElement(${locator});`);
+        lines.push(`            if (element${index}.isSelected()) {`);
+        lines.push(`                element${index}.click();`);
+        lines.push(`            }`);
+        lines.push(`            assert !element${index}.isSelected() : "Checkbox still checked";`);
         break;
       case 'submit':
         lines.push(`            driver.findElement(${locator}).submit();`);
