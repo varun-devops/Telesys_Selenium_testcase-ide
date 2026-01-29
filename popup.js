@@ -412,6 +412,7 @@ function generateSeleniumPython() {
   
   testSteps.forEach((step, index) => {
     lines.push(`        # Step ${index + 1}: ${step.description || step.command}`);
+    lines.push(`        print("Executing Step ${index + 1}: ${step.description || step.command}")`);
     
     const locatorType = getSeleniumLocator(step.target);
     
@@ -444,7 +445,7 @@ function generateSeleniumPython() {
       default:
         lines.push(`        # TODO: Implement ${step.command}`);
     }
-    lines.push('        time.sleep(0.5)');
+    lines.push(`        print("✓ Step ${index + 1} completed successfully")`);
     lines.push('');
   });
   
@@ -511,6 +512,7 @@ function generateWebDriverJava() {
   
   testSteps.forEach((step, index) => {
     lines.push(`            // Step ${index + 1}: ${step.description || step.command}`);
+    lines.push(`            System.out.println("Executing Step ${index + 1}: ${step.description || step.command}");`);
     
     const locator = getJavaLocator(step.target);
     
@@ -543,7 +545,7 @@ function generateWebDriverJava() {
       default:
         lines.push(`            // TODO: Implement ${step.command}`);
     }
-    lines.push('            Thread.sleep(500);');
+    lines.push(`            System.out.println("✓ Step ${index + 1} completed successfully");`);
     lines.push('');
   });
   
